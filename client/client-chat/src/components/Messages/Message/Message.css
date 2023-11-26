@@ -1,5 +1,5 @@
 .messageBox {
-    background: #F3F3F3;
+    background: #252332;
     border-radius: 20px;
     padding: 5px 20px;
     color: white;
@@ -63,5 +63,6 @@
 }
 
 .backgroundLight {
-    background: #F3F3F3;
+    /* background: #F3F3F3; */
+    background: #353147;
 }
