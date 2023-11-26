@@ -44,4 +44,39 @@ router.post('/createRoom', async (req, res) => {
     }
 });
 
+// Join room route
+router.post('/joinRoom', async (req, res) => {
+    const { name, room, password } = req.body;
+
+    // Validate input
+    if (!name || !room || !password) {
+        return res.status(400).json({ error: 'Name, room, and password are required' });
+    }
+
+    try {
+        // Find the room in the database
+        const existingRoom = await Room.findOne({ name: room });
+
+        // If the room doesn't exist, return an error
+        if (!existingRoom) {
+            return res.status(400).json({ error: 'Room does not exist' });
+        }
+
+        // Compare the provided password with the hashed password in the database
+        const passwordMatch = await bcrypt.compare(password, existingRoom.password);
+
+        if (passwordMatch) {
+            // Password is correct, you can proceed with joining the room
+            res.status(200).json({ message: 'Joined successfully' });
+        } else {
+            // Password is incorrect
+            res.status(401).json({ error: 'Incorrect password' });
+        }
+    } catch (error) {
+        console.error('Error joining room:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 module.exports = router
