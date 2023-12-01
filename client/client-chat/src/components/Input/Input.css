@@ -3,6 +3,7 @@
     border-top: 2px solid #272535;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
+    height: 8vh;
 }
 
 .input {
@@ -25,7 +26,7 @@ select:focus {
     text-transform: uppercase;
     text-decoration: none;
     background: #2979FF;
-    padding: 20px;
+    padding: 5%;
     display: inline-block;
     border: none;
     width: 20%;
