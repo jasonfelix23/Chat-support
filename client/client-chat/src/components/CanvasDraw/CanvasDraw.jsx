@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { HexColorPicker } from "react-colorful";
 import { useOnDraw } from '../Hooks';
 import { palette, reset } from '../../assets';
+import socketIOClient from 'socket.io-client';
+
 
 import './CanvasDraw.css'
 
-const CanvasDraw = () => {
+const CanvasDraw = ({ socket }) => {
     const [colorPickerVisible, setColorPickerVisible] = useState(false);
     const [color, setColor] = useState("#186333");
     const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-    const { setCanvasRef, onCanvasMouseDown, clear } = useOnDraw(onDraw);
+    const { setCanvasRef, onCanvasMouseDown, clear, getCanvasRef } = useOnDraw(onDraw);
 
     const toggleColorPicker = () => {
         setColorPickerVisible((prevVisible) => !prevVisible);
@@ -25,7 +27,7 @@ const CanvasDraw = () => {
             const canvasContainer = document.getElementById('canvas-container');
             const newWidth = canvasContainer.offsetWidth;
             const newHeight = canvasContainer.offsetHeight;
-            setCanvasSize({ width: newWidth, height: newHeight });
+            setCanvasSize({ width: newWidth - 15, height: newHeight });
         };
 
         // Initial setup
@@ -40,12 +42,25 @@ const CanvasDraw = () => {
         };
     }, []); // This effect runs once when the component mounts
 
-    function onDraw(ctx, point, prevPoint) {
-        drawLine(prevPoint, point, ctx, 3, color)
+    useEffect(() => {
+        const canvasRef = getCanvasRef();
+        const ctx = canvasRef.current?.getContext('2d');
+        if (socket) {
+            socket.on('draw-line', ({ prevPoint, currentPoint, color }) => {
+                drawLine(prevPoint, currentPoint, ctx, 3, color);
+            })
+
+            socket.on('clear', clear);
+        }
+    }, [socket])
+
+    function onDraw(ctx, currentPoint, prevPoint) {
+        socket.emit('draw-line', { prevPoint, currentPoint, color })
+        drawLine(prevPoint, currentPoint, ctx, 3, color)
     }
 
     function drawLine(start, end, ctx, width, color) {
-        console.log(start);
+        console.log({ start, ctx, });
         start = start ?? end;
         ctx.beginPath();
         ctx.lineWidth = width;
@@ -79,7 +94,7 @@ const CanvasDraw = () => {
             <button
                 className="rounded-full w-12 h-12 md:w-14 md:h-14 absolute bg-gray-300"
                 style={{ zIndex: 2, left: '100%', top: '60px' }}
-                onClick={clear}
+                onClick={() => socket.emit('clear')}
             >
                 <img src={reset} alt='Icon' className='object-cover' />
             </button>

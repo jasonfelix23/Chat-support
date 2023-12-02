@@ -52,13 +52,14 @@ const CreateRoom = () => {
             <div>
                 <input
                     placeholder="Password"
-                    className="joinInput mt-20"
+                    className="joinInput mt-10"
                     type="password"
                     onChange={(event) => setPassword(event.target.value)}
                 />
             </div>
             <Link onClick={handleCreate} to={`/`}>
-                <button className={'button mt-20'} type="submit">
+                <button className='bg-white hover:bg-gray-300 text-gray-600 font-semibold py-4 px-8  mt-10 border border-gray-400 rounded shadow'
+                    type="submit">
                     Create
                 </button>
             </Link>

@@ -49,12 +49,16 @@ export default function SignIn() {
                 <input placeholder="Name" className="joinInput" type="text" onChange={(e) => setName(e.target.value)} />
             </div>
             <div>
-                <input placeholder="Room" className="joinInput mt-20" type="text" onChange={(e) => setRoom(e.target.value)} />
+                <input placeholder="Room" className="joinInput mt-10" type="text" onChange={(e) => setRoom(e.target.value)} />
             </div>
             <div>
-                <input placeholder="Password" className="joinInput mt-20" type="password" onChange={(e) => setPassword(e.target.value)} />
+                <input placeholder="Password" className="joinInput mt-10" type="password" onChange={(e) => setPassword(e.target.value)} />
             </div>
-            <button className={'button mt-20'} type="submit" onClick={handleSignIn}>Sign In</button>
+            <button className='bg-white hover:bg-gray-300 text-gray-600 font-semibold py-4 px-8  mt-10 border border-gray-400 rounded shadow'
+                type="submit"
+                onClick={handleSignIn}>
+                Sign In
+            </button>
         </div>
     );
 }

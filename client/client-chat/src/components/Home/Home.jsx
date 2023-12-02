@@ -8,8 +8,8 @@ import CreateRoom from '../CreateRoom/CreateRoom';
 const Home = () => {
     return (
         <div className="joinOuterContainer">
-            <Tabs>
-                <TabList>
+            <Tabs className="w-1/4">
+                <TabList className="flex justify-between">
                     <Tab>
                         <h2 className='heading'>
                             Join
@@ -21,7 +21,7 @@ const Home = () => {
                         </h2>
                     </Tab>
                 </TabList>
-                <div className="joinInnerContainer">
+                <div className="joinInnerContainer ">
                     {/* Join Panel */}
                     <TabPanel>
                         <Join />

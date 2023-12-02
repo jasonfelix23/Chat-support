@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router';
 import queryString from 'query-string';
 import socketIOClient from 'socket.io-client';
@@ -53,22 +53,22 @@ const Chat = () => {
 
 
     return (
-        <div className='grid grid-cols-2 gap-4 h-screen w-screen box-border outerContainer'>
-            <div className='col-span-1/2  bg-gray-200 p-4 flex flex-col items-center justify-center'>
+        <div className='grid grid-cols-5 gap-4 h-screen w-screen box-border outerContainer'>
+            <div className='col-span-3 p-4 flex flex-col items-center justify-center'>
                 <h1 className='text-gray-600'>Code Editor</h1>
                 <p className='text-gray-400 font-light'>Coming out soon</p>
             </div>
-            <div className='col-span-1/2 grid grid-rows-2 gap-4'>
+            <div className='col-span-2 grid grid-rows-2 gap-4'>
 
-                <div className='row-span-1 p-4 '>
+                <div className='row-span-1 p-4'>
                     <div className='container'>
                         <InfoBar room={room} />
                         <Messages messages={messages} name={name} />
                         <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
                     </div>
                 </div>
-                <div className='row-span-1'>
-                    <CanvasDraw />
+                <div className='row-span-1 px-3'>
+                    <CanvasDraw socket={socket} />
                 </div>
             </div>
         </div>

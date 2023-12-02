@@ -45,7 +45,7 @@ body {
 }
 
 .joinInput {
-    border-radius: 0;
+    border-radius: 4px;
     background-color: #353147;
     padding: 15px 20px;
     width: 100%;
@@ -71,9 +71,7 @@ body {
     width: 100%;
 }
 
-.mt-20 {
-    margin-top: 20px;
-}
+
 
 @media (min-width: 320px) and (max-width: 480px) {
     .joinOuterContainer {

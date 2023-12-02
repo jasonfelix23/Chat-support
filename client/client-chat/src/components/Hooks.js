@@ -13,6 +13,10 @@ export function useOnDraw(onDraw) {
         canvasRef.current = ref;
     }
 
+    function getCanvasRef() {
+        return canvasRef;
+    }
+
     function onCanvasMouseDown() {
         isDrawingRef.current = true;
     }
@@ -31,7 +35,7 @@ export function useOnDraw(onDraw) {
         function computePointInCanvas(clientX, clientY) {
             if (canvasRef.current) {
                 const boundingRect = canvasRef.current.getBoundingClientRect();
-                console.log(window.devicePixelRatio);
+
                 return {
                     x: clientX - boundingRect.left,
                     y: clientY - boundingRect.top
@@ -48,7 +52,6 @@ export function useOnDraw(onDraw) {
                     const ctx = canvasRef.current.getContext('2d');
                     if (onDraw) onDraw(ctx, point, prevPointRef.current);
                     prevPointRef.current = point;
-                    console.log(point, { x: e.offsetX, y: e.offsetY });
                 }
             }
             mouseMoveListenerRef.current = mouseMoveListener;
@@ -82,7 +85,8 @@ export function useOnDraw(onDraw) {
     return {
         setCanvasRef,
         onCanvasMouseDown,
-        clear
+        clear,
+        getCanvasRef,
     }
 
-};
+}
