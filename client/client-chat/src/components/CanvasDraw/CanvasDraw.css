@@ -2,3 +2,14 @@
 .resposive .react-colorful {
     width: auto;
 }
+
+/* Small */
+.small .react-colorful {
+    position: absolute;
+    width: 10vh;
+    height: 10vh;
+}
+
+.small .react-colorful__hue {
+    height: 10px;
+}

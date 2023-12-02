@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { HexColorPicker } from "react-colorful";
 import { useOnDraw } from '../Hooks';
-import { palette } from '../../assets';
+import { palette, reset } from '../../assets';
+
+import './CanvasDraw.css'
 
 const CanvasDraw = () => {
     const [colorPickerVisible, setColorPickerVisible] = useState(false);
-    const [color, setColor] = useState("#b32aa9");
+    const [color, setColor] = useState("#186333");
     const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-    const { setCanvasRef, onCanvasMouseDown } = useOnDraw(onDraw);
+    const { setCanvasRef, onCanvasMouseDown, clear } = useOnDraw(onDraw);
 
     const toggleColorPicker = () => {
         setColorPickerVisible((prevVisible) => !prevVisible);
@@ -66,22 +68,31 @@ const CanvasDraw = () => {
                 ref={setCanvasRef}
                 onMouseDown={onCanvasMouseDown}
             />
-            {/* <HexColorPicker className='absolute' color={color} onChange={setColor} style={{ zIndex: 2, left: '80%' }} /> */}
+
             <button
-                className="rounded-full w-16 h-16 absolute bg-gray-300"
+                className="rounded-full w-12 h-12 md:w-14 md:h-14 mb-1 absolute bg-gray-300"
                 style={{ zIndex: 2, left: '100%' }}
                 onClick={toggleColorPicker}
             >
                 <img src={palette} alt='Icon' />
             </button>
+            <button
+                className="rounded-full w-12 h-12 md:w-14 md:h-14 absolute bg-gray-300"
+                style={{ zIndex: 2, left: '100%', top: '60px' }}
+                onClick={clear}
+            >
+                <img src={reset} alt='Icon' className='object-cover' />
+            </button>
             {colorPickerVisible && (
+                <section className='small'>
 
-                <HexColorPicker
-                    color={color}
-                    onChange={handleColorChange}
-                    className='absolute top-10 left-10 ml-2'
-                    style={{ zIndex: 2, left: '70%' }}
-                />
+                    <HexColorPicker
+                        color={color}
+                        onChange={handleColorChange}
+                        className='absolute top-0 right-0'
+                    // style={{ zIndex: 2, left: '100%' }}
+                    />
+                </section>
             )}
         </div>
     )

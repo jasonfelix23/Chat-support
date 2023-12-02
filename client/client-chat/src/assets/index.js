@@ -1,2 +1,3 @@
 import palette from './palette.svg';
-export { palette };
+import reset from './reset.svg';
+export { palette, reset };

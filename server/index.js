@@ -67,6 +67,12 @@ io.on('connection', (socket) => {
         callback();
     })
 
+    socket.on('draw-line', ({ prevPoint, currentPoint, color }) => {
+        const user = getUser(socket.id);
+
+        socket.broadcast.to(user.room).emit('draw-line', { prevPoint, currentPoint, color });
+    })
+
     socket.on('disconnect', () => {
         const user = removeUser(socket.id);
         if (user) {
