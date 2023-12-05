@@ -8,6 +8,7 @@ import InfoBar from '../InfoBar/InfoBar';
 import Input from '../Input/Input';
 import Messages from '../Messages/Messages';
 import CanvasDraw from '../CanvasDraw/CanvasDraw';
+import CodeEditor from '../CodeEditor/CodeEditor';
 
 let socket;
 const ENDPOINT = 'http://127.0.0.1:5000';
@@ -55,8 +56,9 @@ const Chat = () => {
     return (
         <div className='grid grid-cols-5 gap-4 h-screen w-screen box-border outerContainer'>
             <div className='col-span-3 p-4 flex flex-col items-center justify-center'>
-                <h1 className='text-gray-600'>Code Editor</h1>
-                <p className='text-gray-400 font-light'>Coming out soon</p>
+                {/* <h1 className='text-gray-600'>Code Editor</h1>
+                <p className='text-gray-400 font-light'>Coming out soon</p> */}
+                <CodeEditor socket={socket} />
             </div>
             <div className='col-span-2 grid grid-rows-2 gap-4'>
 

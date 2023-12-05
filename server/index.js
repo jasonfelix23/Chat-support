@@ -39,6 +39,7 @@ const io = new Server(server, {
     }
 });
 
+
 io.on('connection', (socket) => {
     console.log(`We have a new connection ${socket.id}`);
 
@@ -78,6 +79,39 @@ io.on('connection', (socket) => {
         io.to(user.room).emit('clear')
     }
     );
+
+    socket.on('saveCode', ({ code }) => {
+        const user = getUser(socket.id);
+        console.log(`Code being saved : ${code}`)
+        // Store the code or perform any necessary actions here
+        // You can store it in a database or in-memory data structure
+        // For simplicity, let's store it in-memory for now
+
+        // Broadcast the updated code to other users in the same room
+        io.to(user.room).emit('updateCode', { userId: user.id, code });
+    });
+
+    socket.on('language-change', ({ language }) => {
+        const user = getUser(socket.id);
+        console.log(`Language being updated ${language}`);
+        if (user) {
+            user.language = language;
+            io.to(user.room).emit('language-change', { userId: socket.id, language });
+        }
+    });
+
+    socket.on('take-control', () => {
+        const controlUser = getUser(socket.id);
+        console.log(`${controlUser.name} has taken control`);
+        io.emit('control-change', { controlUser });
+    });
+
+    // Listen for release-control event
+    socket.on('release-control', () => {
+        controlUser = { name: 'Nobody', id: '000' };
+        io.emit('control-change', { controlUser });
+    });
+
 
     socket.on('disconnect', () => {
         const user = removeUser(socket.id);
