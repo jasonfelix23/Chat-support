@@ -85,14 +85,14 @@ const CanvasDraw = ({ socket }) => {
             />
 
             <button
-                className="rounded-full w-12 h-12 md:w-14 md:h-14 mb-1 absolute bg-gray-300"
+                className="w-14 h-14 absolute bg-gray-300"
                 style={{ zIndex: 2, left: '100%' }}
                 onClick={toggleColorPicker}
             >
                 <img src={palette} alt='Icon' />
             </button>
             <button
-                className="rounded-full w-12 h-12 md:w-14 md:h-14 absolute bg-gray-300"
+                className=" w-14 h-14 absolute bg-gray-300"
                 style={{ zIndex: 2, left: '100%', top: '60px' }}
                 onClick={() => socket.emit('clear')}
             >

@@ -76,6 +76,11 @@ const CodeEditor = ({ socket }) => {
 
     }, [socket]);
 
+    let statusBarClass = `col-span-5 flex p-6 justify-between gap-3 bg-neutral-900 text-gray-400`
+    if (userHasControl) {
+        statusBarClass = `col-span-5 flex p-2 justify-between bg-slate-200 text-gray-600`
+    }
+
 
     return (
         <div className='grid grid-rows-5 gap-4 h-full w-full box-border'>
@@ -85,42 +90,46 @@ const CodeEditor = ({ socket }) => {
                         value={value}
                         height='400px'
                         width='100%'
-                        theme={basicLight}
+                        theme={userHasControl ? basicLight : dracula}
                         extensions={languageSelection}
+                        readOnly={!userHasControl}
                         onChange={onChangeCode}
                     />
                 </div>
-                <div className='col-span-5 flex p-2 justify-between bg-slate-200'>
-                    <div className='col-span-1'>
-                        {/* Dropdown button */}
-                        <select
-                            className='bg-gray-400 hover:bg-gray-500 rounded-lg p-4'
-                            value={selectedLanguage}
-                            onChange={handleLanguageChange}
-                        >
-                            <option value='python'>Python</option>
-                            <option value='javascript'>JavaScript</option>
-                        </select>
-                    </div>
+                {/* <div className={userHasControl ? 'col-span-5 flex p-2 justify-between bg-slate-200 text-gray-600' : 'col-span-5 flex p-6 justify-between bg-gray-800'}> */}
+                <div className={statusBarClass}>
+                    {userHasControl ?
+                        <div className='col-span-1'>
+                            {/* Dropdown button */}
+                            <select
+                                className='bg-gray-400 hover:bg-gray-500 rounded-lg p-4'
+                                value={selectedLanguage}
+                                onChange={handleLanguageChange}
+                            >
+                                <option value='python'>Python</option>
+                                <option value='javascript'>JavaScript</option>
+                            </select>
+                        </div> : null}
                     {userHasControl ? (
-                        <button onClick={releaseControl} className='col-span-1'>Release control</button>
+                        <button onClick={releaseControl} className='col-span-1 bg-gray-400 hover:bg-gray-500'>Release control</button>
                     ) : null}
                     {controlUser === 'Nobody' ? (
-                        <button onClick={takeControl} className='col-span-1'>Take control</button>
+                        <button onClick={takeControl} className='col-span-1 bg-neutral-800 hover:bg-neautral-900 text-gray-400'>Take control</button>
                     ) : null}
-                    <p>{userHasControl ? 'You have control' : `${controlUser} has control`}</p>
-                    <button className='col-span-1 bg-gray-400 hover:bg-gray-500'
+                    <p className='pt-2'>{userHasControl ? 'You have control' : `${controlUser} has control`}</p>
+                    {userHasControl ? <button className='col-span-1 bg-gray-400 hover:bg-gray-500'
                         onClick={handleSave}>
                         Save
-                    </button>
-                    <button className='col-span-1 bg-gray-500 '>
-                        <img src={play} className='w-4' /></button>
+                    </button> : null}
+
+                    {userHasControl ? <button className='col-span-1 bg-gray-500 '>
+                        <img src={play} className='w-4' /></button> : null}
                 </div>
             </div>
-            <div className='row-span-1 p-4 flex flex-col items-center justify-center bg-black'>
-                <h1 className='text-gray-600'>Output</h1>
+            <div className='row-span-1 p-4 flex flex-col items-center justify-center bg-neutral-900 text-gray-400'>
+                <h1 className='text-gray-400'>Output</h1>
             </div>
-        </div>
+        </div >
     )
 }
 
