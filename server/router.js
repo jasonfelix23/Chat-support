@@ -79,4 +79,28 @@ router.post('/joinRoom', async (req, res) => {
 });
 
 
+router.post('/execute', async (req, res) => {
+    console.log("Here on route /execute");
+    
+    const { script, language, versionIndex } = req.body;
+    
+    const response = await fetch('https://api.jdoodle.com/v1/execute', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            clientId: "924b1ec66dc85ff8c43ab04a2552cac2",
+            clientSecret: "8272743fc24e4848176e8fb0c248ccdeb9ead082c2c95ac586cd373773b29c3b",
+            script: script,
+            language: language,
+            versionIndex: "1"
+        }),
+    });
+
+    const data = await response.json();
+    console.log(data);
+    res.send(data);
+});
+
 module.exports = router

@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const http = require('http');
 const cors = require('cors'); // Import cors module
 const mongoose = require('mongoose');
+const { createProxyMiddleware } = require('http-proxy-middleware'); // Import the middleware
 
 
 //Custom imports
@@ -19,7 +20,25 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+/*app.use(function (request, response, next) {
+    response.header("Access-Control-Allow-Origin", "*");
+    response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });*/
+app.use(
+    '/v1',
+    createProxyMiddleware({
+        target: 'https://api.jdoodle.com',
+        changeOrigin: true,
+        pathRewrite: {
+            '^/v1': '/v1',
+  },
+  onProxyRes: function (proxyRes, req, res) {
+    proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+    proxyRes.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
+        },
+    })
+);
 
 //connect to mongoDB
 mongoose.connect('mongodb://localhost:27017/Rooms', {
@@ -31,6 +50,18 @@ mongoose.connect('mongodb://localhost:27017/Rooms', {
 mongoose.connection.on('connected', () => {
     console.log('Connected to MongoDB');
 });
+
+/*app.use(
+    '/v1',
+    createProxyMiddleware({
+        target: 'https://api.jdoodle.com',
+        changeOrigin: true,
+        pathRewrite: {
+            '^/v1': '',
+        },
+    })
+
+);*/
 
 const io = new Server(server, {
     cors: {
@@ -91,6 +122,11 @@ io.on('connection', (socket) => {
         io.to(user.room).emit('updateCode', { userId: user.id, code });
     });
 
+    socket.on('code-executed', ({output}) => {
+        const user = getUser(socket.id);
+        io.to(user.room).emit('code-executed', {userId: socket.id, output });
+    });
+
     socket.on('language-change', ({ language }) => {
         const user = getUser(socket.id);
         console.log(`Language being updated ${language}`);
@@ -121,8 +157,8 @@ io.on('connection', (socket) => {
         }
     });
 });
-
+app.use(cors());
 app.use(express.json());
 app.use(router);
 
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`Server is running on port ${PORT}`));
