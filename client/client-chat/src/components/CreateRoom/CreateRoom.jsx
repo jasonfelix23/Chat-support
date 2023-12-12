@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link , useNavigate} from "react-router-dom";
+
 
 const CreateRoom = () => {
     const [room, setRoom] = useState('');
     const [password, setPassword] = useState('');
-
+    const navigate = useNavigate();
     const handleCreate = async (e) => {
         e.preventDefault();
         console.log(`No request to server, just checking ${room} name and ${password}`);
@@ -38,6 +39,9 @@ const CreateRoom = () => {
             console.log('Room created:', result);
 
             // Redirect or perform any other actions after room creation
+            setTimeout(() => {
+                navigate('../Join/Join.jsx');
+            }, 1000);
             // For example, navigate to the chat page with the new room
             // navigate(`/chat?name=${name}&room=${result.roomName}`);
         } catch (error) {
@@ -59,7 +63,8 @@ const CreateRoom = () => {
             </div>
             <Link onClick={handleCreate} to={`/`}>
                 <button className='bg-white hover:bg-gray-300 text-gray-600 font-semibold py-4 px-8  mt-10 border border-gray-400 rounded shadow'
-                    type="submit">
+                    type="submit"
+                     onClick={handleCreate}>
                     Create
                 </button>
             </Link>
