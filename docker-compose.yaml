@@ -1,0 +1,38 @@
+version: "0"
+
+services:
+  frontend:
+    build : ./client
+    container_name: react-ui
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+    networks:
+      - chat-network
+
+  backend: 
+    build: ./server
+    container_name: node-api
+    ports: 
+      - "5000:5000"
+    depends_on:
+      - database
+    networks:
+      - chat-network
+  
+  database:
+    image: mongo
+    container_name: mongo-db
+    ports: 
+      - "27017:27017"
+    volumes: 
+      - /home/project/mongo-backup:/data/db
+    networks:
+      - chat-network
+
+networks:
+  chat-network:
+    driver: bridge
