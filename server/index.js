@@ -33,7 +33,7 @@ const server = http.createServer(app);
 app.use(bodyParser.json());
 
 //connect to mongoDB
-mongoose.connect('mongodb://localhost:27017/Rooms', {
+mongoose.connect('mongodb://mongo-db:27017/Rooms', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
@@ -46,7 +46,7 @@ mongoose.connection.on('connected', () => {
 
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: 'http://react-ui:5173',
         methods: ['GET', 'POST'],
     }
 });

@@ -39,9 +39,9 @@ const CreateRoom = () => {
             console.log('Room created:', result);
 
             // Redirect or perform any other actions after room creation
-            setTimeout(() => {
-                navigate('../Join/Join.jsx');
-            }, 1000);
+            // setTimeout(() => {
+            //     navigate('../Join/Join.jsx');
+            // }, 1000);
             // For example, navigate to the chat page with the new room
             // navigate(`/chat?name=${name}&room=${result.roomName}`);
         } catch (error) {
