@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+Credentials.json
+/Users/vedantkumbhare/Documents/Chat-support/client/client-chat/Credentials.json
+client/client-chat/Credentials.json
