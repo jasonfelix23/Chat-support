@@ -111,58 +111,172 @@ app.post('/uploadCanvasScreenshot', upload.single('image'), async (req, res) => 
     }
 });
 
-  app.post('/saveCodeAsPDF', async (req, res) => {
-    try {
-      const { code } = req.body;
+//   app.post('/saveCodeAsPDF', async (req, res) => {
+//     try {
+//       const { code } = req.body;
   
-      //const pdfDoc = await PDFDocument.create();
-      const pdfDoc = await pdf.create();
-      const page = pdfDoc.addPage();
-      const { height } = page.getSize();
+//       //const pdfDoc = await PDFDocument.create();
+//     //   const pdfDoc = await pdf.create();
+//     //   const page = pdfDoc.addPage();
+//     //   const { height } = page.getSize();
   
-      page.drawText(code, {
-        x: 50,
-        y: height - 100,
-      });
+//     //   page.drawText(code, {
+//     //     x: 50,
+//     //     y: height - 100,
+//     //   });
   
-      const pdfBytes = await pdfDoc.save();
+//     //   const pdfBytes = await pdfDoc.save();
+
+//       pdf.create(code, { format: 'Letter' }).toBuffer(async (err, buffer) => {
+//         if (err) {
+//           console.error('Error creating PDF:', err);
+//           res.status(500).json({ success: false, error: 'Internal Server Error' });
+//           return;
+//         }
   
-      const fileName = `code_${Date.now()}.pdf`;
-      const bucket = storage.bucket('screenshots_canvas');
-      const file = bucket.file(fileName);
+//       const fileName = `code_${Date.now()}.pdf`;
+//       const bucket = storage.bucket('screenshots_canvas');
+//       const file = bucket.file(fileName);
       
-      // Create a writable stream and pipe the PDF data to it
-      const writeStream = file.createWriteStream({
-        metadata: {
-          contentType: 'application/pdf',
-        },
-      });
+//       // Create a writable stream and pipe the PDF data to it
+//       const writeStream = file.createWriteStream({
+//         metadata: {
+//           contentType: 'application/pdf',
+//         },
+//       });
   
-      writeStream.on('error', (err) => {
-        console.error('Error writing PDF to Google Cloud Storage:', err);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
-      });
+//       writeStream.on('error', (err) => {
+//         console.error('Error writing PDF to Google Cloud Storage:', err);
+//         res.status(500).json({ success: false, error: 'Internal Server Error' });
+//       });
   
-      writeStream.on('finish', async () => {
-        console.log(`PDF saved to Google Cloud Storage: ${fileName}`);
+//       writeStream.on('finish', async () => {
+//         console.log(`PDF saved to Google Cloud Storage: ${fileName}`);
   
-        // Get a signed URL for the client to download the PDF
-        const [url] = await file.getSignedUrl({
-          action: 'read',
-          expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+//         // Get a signed URL for the client to download the PDF
+//         const [url] = await file.getSignedUrl({
+//           action: 'read',
+//           expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+//         });
+  
+//         // Respond to the client with the signed URL
+//         res.status(200).json({ success: true, url });
+//       });
+  
+//       // Pipe the PDF data to the writable stream
+//       writeStream.end(pdfBytes);
+//     } catch (error) {
+//       console.error('Error saving code as PDF:', error);
+//       res.status(500).json({ success: false, error: error.message });
+//     }
+// });
+
+
+//Code below works on localhost and gives error in docker
+
+// app.post('/saveCodeAsPDF', async (req, res) => {
+//     try {
+//       const { code } = req.body;
+//       const phantomPath = '/opt/homebrew/bin/phantomjs';
+
+//       const pdfOptions = {
+//         phantomPath,
+//         format: 'Letter',
+//     };
+  
+//       // Use the html-pdf library to create a PDF
+//       pdf.create(code, pdfOptions).toBuffer(async (err, buffer) => {
+//         if (err) {
+//             console.error('Error creating PDF:', err);
+//             res.status(500).json({ success: false, error: 'Internal Server Error' });
+//             return;
+//         }
+  
+//         const fileName = `code_${Date.now()}.pdf`;
+//         const bucket = storage.bucket('screenshots_canvas');
+//         const file = bucket.file(fileName);
+  
+//         // Create a writable stream and pipe the PDF data to it
+//         const writeStream = file.createWriteStream({
+//           metadata: {
+//             contentType: 'application/pdf',
+//           },
+//         });
+  
+//         writeStream.on('error', (err) => {
+//           console.error('Error writing PDF to Google Cloud Storage:', err);
+//           res.status(500).json({ success: false, error: 'Internal Server Error' });
+//         });
+  
+//         writeStream.on('finish', async () => {
+//           console.log(`PDF saved to Google Cloud Storage: ${fileName}`);
+  
+//           // Get a signed URL for the client to download the PDF
+//           const [url] = await file.getSignedUrl({
+//             action: 'read',
+//             expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+//           });
+  
+//           // Respond to the client with the signed URL
+//           res.status(200).json({ success: true, url });
+//         });
+  
+//         // Pipe the PDF data to the writable stream
+//         writeStream.end(buffer);
+//       });
+//     } catch (error) {
+//       console.error('Error saving code as PDF:', error);
+//       res.status(500).json({ success: false, error: error.message });
+//     }
+//   });
+  
+
+const puppeteer = require('puppeteer');
+
+app.post('/saveCodeAsPDF', async (req, res) => {
+    try {
+        const { code } = req.body;
+
+        const browser = await puppeteer.launch({headless: false});
+        const page = await browser.newPage();
+        await page.setContent(`<pre>${code}</pre>`);
+        const pdfBuffer = await page.pdf();
+
+        const fileName = `code_${Date.now()}.pdf`;
+        const bucket = storage.bucket('screenshots_canvas');
+        const file = bucket.file(fileName);
+
+        const writeStream = file.createWriteStream({
+            metadata: {
+                contentType: 'application/pdf',
+            },
         });
-  
-        // Respond to the client with the signed URL
-        res.status(200).json({ success: true, url });
-      });
-  
-      // Pipe the PDF data to the writable stream
-      writeStream.end(pdfBytes);
+
+        writeStream.on('error', (err) => {
+            console.error('Error writing PDF to Google Cloud Storage:', err);
+            res.status(500).json({ success: false, error: 'Internal Server Error' });
+        });
+
+        writeStream.on('finish', async () => {
+            console.log(`PDF saved to Google Cloud Storage: ${fileName}`);
+
+            const [url] = await file.getSignedUrl({
+                action: 'read',
+                expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+            });
+
+            res.status(200).json({ success: true, url });
+        });
+
+        writeStream.end(pdfBuffer);
+        await browser.close();
     } catch (error) {
-      console.error('Error saving code as PDF:', error);
-      res.status(500).json({ success: false, error: error.message });
+        console.error('Error saving code as PDF:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
+
+
 
   
 io.on('connection', (socket) => {
