@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HexColorPicker } from "react-colorful";
 import { useOnDraw } from '../Hooks';
-import { palette, reset } from '../../assets';
+import { palette, reset, download } from '../../assets';
 import socketIOClient from 'socket.io-client';
 import axios from 'axios';
 
@@ -125,15 +125,15 @@ const CanvasDraw = ({ socket }) => {
 
             <button
                 className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-gray-300 absolute"
-                style={{ zIndex: 2, top: 'calc(30%)', left: 'calc(100%)' }}
+                style={{ zIndex: 2, left: '100%', top: '120px' }}
                 onClick={handleButtonClick}
             >
-                <img src="download.png" alt="Download" style={{ width: '200%', height: '50%' }} className='object-cover' />
+                <img src={download} alt="Download" className='object-cover' />
 
             </button>
 
             <button
-                className="rounded-full w-100 h-12 md:w-14 md:h-14 absolute bg-gray-300"
+                className="rounded-full w-12 h-12 md:w-14 md:h-14 absolute bg-gray-300"
                 style={{ zIndex: 2, left: '100%', top: '60px' }}
                 onClick={() => socket.emit('clear')}
             >

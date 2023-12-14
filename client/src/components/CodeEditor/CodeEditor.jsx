@@ -4,7 +4,7 @@ import { python } from '@codemirror/lang-python';
 import { javascript } from '@codemirror/lang-javascript';
 import { basicLight } from '@uiw/codemirror-theme-basic';
 import { dracula } from '@uiw/codemirror-theme-dracula';
-import { play } from '../../assets';
+import { play, download } from '../../assets';
 import axios from 'axios';
 
 const CodeEditor = ({ socket }) => {
@@ -56,10 +56,10 @@ const CodeEditor = ({ socket }) => {
       }, {
         headers: {
           'content-type': 'application/json',
-          'Content-Type': 'application/json',
           'x-compile': 'rapidapi',
-          'X-RapidAPI-Key': '21f64d709emshbabcd9e32de3870p14993fjsndefaa0fbccbf',
-          'X-RapidAPI-Host': 'code-compiler10.p.rapidapi.com',
+          'Content-Type': 'application/json',
+          'X-RapidAPI-Key': '9f5179372dmsh327130fbd829303p1a50b3jsn63212679421a',
+          'X-RapidAPI-Host': 'code-compiler10.p.rapidapi.com'
         },
       });
 
@@ -184,13 +184,13 @@ const CodeEditor = ({ socket }) => {
     }
   }, [socket]);
 
-  let statusBarClass = `col-span-5 flex p-6 justify-between gap-3 bg-neutral-900 text-gray-400`
+  let statusBarClass = `col-span-6 flex p-6 justify-between gap-3 bg-neutral-900 text-gray-400`
   if (userHasControl) {
-    statusBarClass = `col-span-5 flex p-2 justify-between bg-slate-200 text-gray-600`
+    statusBarClass = `col-span-6 flex p-2 justify-between bg-slate-200 text-gray-600`
   }
 
   return (
-    <div className='grid grid-rows-5 gap-4 h-full w-full box-border'>
+    <div className='grid grid-rows-6 gap-4 h-full w-full box-border'>
       <div className='row-span-4 flex flex-col w-full h-full overflow-auto relative'>
         <div style={{ maxWidth: '100%', width: '100%' }}>
           <CodeMirror
@@ -226,12 +226,13 @@ const CodeEditor = ({ socket }) => {
           {userHasControl ? (<button className='col-span-1 bg-gray-400 hover:bg-gray-500' onClick={handleSave}>
             Save
           </button>) : null}
-          {/* <button onClick={saveCodeAsPDF}>
-            <img alt="Download PDF" className='w-4'/>
-          </button> */}
-          <button onClick={saveCodeAsPDF} className="bg-gray-300 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg flex items-center">
-            <img src="download.png" alt="Download PDF" className="w-8 h-8 mr-3" />
-          </button>
+
+          {userHasControl ? <button onClick={saveCodeAsPDF} className="col-span-1 bg-gray-400 hover:bg-gray-500">
+            <img src={download} alt="Download PDF" className="w-4" />
+          </button> : <button onClick={saveCodeAsPDF} className="col-span-1 bg-neutral-800 hover:bg-neautral-900">
+            <img src={download} alt="Download PDF" className="w-4" />
+          </button>}
+
           <button onClick={executeCode}>
             <img src={play} className='w-4' alt='Run' />
           </button>
@@ -244,7 +245,7 @@ const CodeEditor = ({ socket }) => {
           </div>
         )}
       </div>
-      <div className='row-span-1 p-4 flex flex-col items-center justify-center bg-black'>
+      <div className='row-span-1 p-4 flex flex-col items-start  bg-black'>
         <div className='text-gray-600'>Output</div>
         <div className='text-gray-400'>{output}</div>
       </div>

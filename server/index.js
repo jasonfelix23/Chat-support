@@ -4,24 +4,24 @@ const { Server } = require('socket.io');
 const http = require('http');
 const cors = require('cors'); // Import cors module
 const mongoose = require('mongoose');
-const { Storage } = require('@google-cloud/storage');
-const multer = require('multer');
-const upload = multer();
-const fs = require('fs');
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const serviceAccount = require('./Credentials.json');
-const path = require('path');
-const os = require('os');
+// const { Storage } = require('@google-cloud/storage');
+// const multer = require('multer');
+// const upload = multer();
+// const fs = require('fs');
+// const functions = require('firebase-functions');
+// const admin = require('firebase-admin');
+// const serviceAccount = require('./Credentials.json');
+// const path = require('path');
+// const os = require('os');
 const bodyParser = require('body-parser');
 
 
 //Custom imports
-const Room = require('./models/Room');
+// const Room = require('./models/Room');
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
 const router = require('./router');
-const credentials = JSON.parse(fs.readFileSync('./Credentials.json'));
-const pdf = require('html-pdf');
+// const credentials = JSON.parse(fs.readFileSync('./Credentials.json'));
+// const pdf = require('html-pdf');
 
 //port 
 const PORT = process.env.PORT || 5000;
@@ -33,15 +33,15 @@ const server = http.createServer(app);
 app.use(bodyParser.json());
 
 // connect to mongoDB
-// mongoose.connect('mongodb://mongo-db:27017/Rooms', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
-
-mongoose.connect('mongodb://localhost:27017/Rooms', {
+mongoose.connect('mongodb://mongo-db:27017/Rooms', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+// mongoose.connect('mongodb://localhost:27017/Rooms', {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// });
 
 // After connecting to MongoDB
 mongoose.connection.on('connected', () => {
@@ -64,7 +64,7 @@ const io = new Server(server, {
 });
 
 
-//const bucketName = 'screenshot_canvas';
+
 
 io.on('connection', (socket) => {
   console.log(`We have a new connection ${socket.id}`);
