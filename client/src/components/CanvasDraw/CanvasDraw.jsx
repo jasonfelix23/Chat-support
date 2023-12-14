@@ -3,7 +3,7 @@ import { HexColorPicker } from "react-colorful";
 import { useOnDraw } from '../Hooks';
 import { palette, reset } from '../../assets';
 import socketIOClient from 'socket.io-client';
-
+import axios from 'axios';
 
 import './CanvasDraw.css'
 
@@ -54,6 +54,36 @@ const CanvasDraw = ({ socket }) => {
         }
     }, [socket])
 
+    const handleButtonClick = async () => {
+        try {
+            const canvas = getCanvasRef().current;
+
+            if (canvas) {
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'canvas_image.png');
+
+                    try {
+                        const response = await axios.post('http://localhost:5000/uploadCanvasScreenshot', formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        });
+
+                        const { fileName } = response.data;
+
+                        // Redirect to download the image
+                        window.location.href = `http://localhost:5000/downloadCanvasImage/${fileName}`;
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                    }
+                }, 'image/png');
+            }
+        } catch (error) {
+            console.error('Error handling button click:', error);
+        }
+    };
+
     function onDraw(ctx, currentPoint, prevPoint) {
         socket.emit('draw-line', { prevPoint, currentPoint, color })
         drawLine(prevPoint, currentPoint, ctx, 3, color)
@@ -91,12 +121,23 @@ const CanvasDraw = ({ socket }) => {
             >
                 <img src={palette} alt='Icon' />
             </button>
+
+
             <button
-                className="rounded-full w-12 h-12 md:w-14 md:h-14 absolute bg-gray-300"
+                className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-gray-300 absolute"
+                style={{zIndex: 2, top: 'calc(30%)',left: 'calc(100%)'}}
+                onClick={handleButtonClick}
+            >
+                <img src="download.png" alt="Download" style={{width: '200%', height: '50%'}} className='object-cov'/>
+            
+            </button>
+
+            <button
+                className="rounded-full w-100 h-12 md:w-14 md:h-14 absolute bg-gray-300"
                 style={{ zIndex: 2, left: '100%', top: '60px' }}
                 onClick={() => socket.emit('clear')}
             >
-                <img src={reset} alt='Icon' className='object-cover' />
+            <img src={reset} alt='Icon' className='object-cover' />
             </button>
             {colorPickerVisible && (
                 <section className='small'>

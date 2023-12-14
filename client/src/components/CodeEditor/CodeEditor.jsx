@@ -42,16 +42,6 @@ const CodeEditor = ({ socket }) => {
 
   const executeCode = async () => {
     try {
-    //   const payload = {
-    //     langEnum: [
-    //       'python',
-    //       'javascript',
-    //       // Add other languages as needed
-    //     ],
-    //     lang: selectedLanguage.toLowerCase(),
-    //     code,
-    //     input: '',
-    //   };
 
     setIsPlayButtonPressed(true);
 
@@ -80,7 +70,6 @@ const CodeEditor = ({ socket }) => {
         // Handle cases where the output is not present in the response
         setOutput('No output received.');
       }
-
       if (response.data.error) {
         setOutput(response.data.error);
       } else {
@@ -103,6 +92,40 @@ const CodeEditor = ({ socket }) => {
   if (selectedLanguage === 'javascript') {
     languageSelection = javascript();
   }
+
+  const saveCodeAsPDF = async () => {
+    try {
+      const response = await axios.post('http://localhost:5000/saveCodeAsPDF', { code: value });
+  
+      if (response.data.success) {
+        const url = response.data.url;
+  
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.download = 'code_output.pdf';
+  
+        // Append the link to the body
+        document.body.appendChild(link);
+  
+        // Trigger a click event to initiate the download
+        link.click();
+  
+        // Remove the link from the body
+        document.body.removeChild(link);
+      } else {
+        console.error('Server error:', response.data.error);
+      }
+    } catch (error) {
+      console.error('Error saving code as PDF:', error);
+    }
+  };
+  
+  
+  
+  
+  
 
   // Client side
   useEffect(() => {
@@ -168,6 +191,12 @@ return (
           {userHasControl? (<button className='col-span-1 bg-gray-400 hover:bg-gray-500' onClick={handleSave}>
             Save
           </button>) : null}
+          {/* <button onClick={saveCodeAsPDF}>
+            <img alt="Download PDF" className='w-4'/>
+          </button> */}
+        <button onClick={saveCodeAsPDF} className="bg-gray-300 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg flex items-center">
+          <img src="download.png" alt="Download PDF" className="w-8 h-8 mr-3" />
+        </button>
           <button onClick={executeCode}>
             <img src={play} className='w-4' alt='Run' />
           </button>

@@ -38,6 +38,11 @@ mongoose.connect('mongodb://mongo-db:27017/Rooms', {
     useUnifiedTopology: true,
 });
 
+// mongoose.connect('mongodb://localhost:27017/Rooms', {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+// });
+
 // After connecting to MongoDB
 mongoose.connection.on('connected', () => {
     console.log('Connected to MongoDB');
@@ -46,15 +51,22 @@ mongoose.connection.on('connected', () => {
 
 const io = new Server(server, {
     cors: {
-        origin: 'http://react-ui:5173',
+       origin: 'http://react-ui:5173',
         methods: ['GET', 'POST'],
     }
 });
 
+// const io = new Server(server, {
+//     cors: {
+//         origin: 'http://localhost:5173',
+//         methods: ['GET', 'POST'],
+//     }
+// });
+
 const storage = new Storage({
     projectId: 'credentials.project_id',
     keyFilename: './Credentials.json',
-    bucket: 'screenshot_canvas',
+    bucket: 'screenshots_canvas',
   });
   //const bucketName = 'screenshot_canvas';
 
@@ -97,40 +109,60 @@ app.post('/uploadCanvasScreenshot', upload.single('image'), async (req, res) => 
     else {
         res.status(404).json({ success: false, error: 'File not found' });
     }
-});  
+});
 
-app.post('/saveCodeAsPDF', async (req, res) => {
+  app.post('/saveCodeAsPDF', async (req, res) => {
     try {
       const { code } = req.body;
   
-      const html = `<html><body><pre>${code}</pre></body></html>`;
-      const pdfOptions = { format: 'Letter' };
+      //const pdfDoc = await PDFDocument.create();
+      const pdfDoc = await pdf.create();
+      const page = pdfDoc.addPage();
+      const { height } = page.getSize();
   
-      pdf.create(html, pdfOptions).toBuffer(async (err, buffer) => {
-        if (err) {
-          console.error('Error creating PDF:', err);
-          res.status(500).json({ success: false, error: 'Internal Server Error' });
-          return;
-        }
+      page.drawText(code, {
+        x: 50,
+        y: height - 100,
+      });
   
-        // Upload the PDF to the Google Cloud Storage bucket
-        const fileName = `code_${Date.now()}.pdf`;
-        const bucket = storage.bucket('screenshots_canvas');
-        const file = bucket.file(fileName);
-        await file.save(buffer);
+      const pdfBytes = await pdfDoc.save();
   
+      const fileName = `code_${Date.now()}.pdf`;
+      const bucket = storage.bucket('screenshots_canvas');
+      const file = bucket.file(fileName);
+      
+      // Create a writable stream and pipe the PDF data to it
+      const writeStream = file.createWriteStream({
+        metadata: {
+          contentType: 'application/pdf',
+        },
+      });
+  
+      writeStream.on('error', (err) => {
+        console.error('Error writing PDF to Google Cloud Storage:', err);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+      });
+  
+      writeStream.on('finish', async () => {
         console.log(`PDF saved to Google Cloud Storage: ${fileName}`);
   
-        // Send the PDF as a response
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-        res.status(200).send(buffer);
+        // Get a signed URL for the client to download the PDF
+        const [url] = await file.getSignedUrl({
+          action: 'read',
+          expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+        });
+  
+        // Respond to the client with the signed URL
+        res.status(200).json({ success: true, url });
       });
+  
+      // Pipe the PDF data to the writable stream
+      writeStream.end(pdfBytes);
     } catch (error) {
       console.error('Error saving code as PDF:', error);
-      res.status(500).json({ success: false, error: 'Internal Server Error' });
+      res.status(500).json({ success: false, error: error.message });
     }
-  });
+});
 
   
 io.on('connection', (socket) => {
