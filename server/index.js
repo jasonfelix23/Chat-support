@@ -32,224 +32,125 @@ const server = http.createServer(app);
 
 app.use(bodyParser.json());
 
-//connect to mongoDB
-mongoose.connect('mongodb://mongo-db:27017/Rooms', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
-
-// mongoose.connect('mongodb://localhost:27017/Rooms', {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
+// connect to mongoDB
+// mongoose.connect('mongodb://mongo-db:27017/Rooms', {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
 // });
+
+mongoose.connect('mongodb://localhost:27017/Rooms', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 // After connecting to MongoDB
 mongoose.connection.on('connected', () => {
-    console.log('Connected to MongoDB');
+  console.log('Connected to MongoDB');
 });
 
-
-const io = new Server(server, {
-    cors: {
-       origin: 'http://react-ui:5173',
-        methods: ['GET', 'POST'],
-    }
-});
 
 // const io = new Server(server, {
-//     cors: {
-//         origin: 'http://localhost:5173',
-//         methods: ['GET', 'POST'],
-//     }
+//   cors: {
+//     origin: 'http://react-ui:5173',
+//     methods: ['GET', 'POST'],
+//   }
 // });
 
-const storage = new Storage({
-    projectId: 'credentials.project_id',
-    keyFilename: './Credentials.json',
-    bucket: 'screenshots_canvas',
-  });
-  //const bucketName = 'screenshot_canvas';
-
-  const multerStorage = multer.memoryStorage();
-
-app.post('/uploadCanvasScreenshot', upload.single('image'), async (req, res) => {
-    try {
-        const imageData = req.file?.buffer;
-        if (!imageData) {
-            throw new Error('No image data');
-        }
-
-      const fileName = `canvas_screenshot_${Date.now()}.png`;
-  
-      const bucket = storage.bucket('screenshots_canvas');
-      const file = bucket.file(fileName);
-  
-      await file.save(imageData, { contentType: 'image/png' });
-  
-      console.log(`Image uploaded to Google Cloud Storage: ${fileName}`);
-     
-      res.status(200).json({ success: true, fileName });
-    } catch (error) {
-      console.error('Error uploading image to Google Cloud Storage:', error);
-      res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-  });
-
-  app.get('/downloadCanvasImage/:fileName', async (req, res) => {
-    const { fileName } = req.params;
-    const bucket = storage.bucket('screenshots_canvas');
-    const file = bucket.file(fileName);
-    const [fileExists] = await file.exists();
-
-    if(fileExists) {
-        const readStream = file.createReadStream();
-        res.setHeader('Content-Type', 'image/png');
-        readStream.pipe(res);
-    }
-    else {
-        res.status(404).json({ success: false, error: 'File not found' });
-    }
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+  }
 });
 
-  app.post('/saveCodeAsPDF', async (req, res) => {
-    try {
-      const { code } = req.body;
-  
-      //const pdfDoc = await PDFDocument.create();
-      const pdfDoc = await pdf.create();
-      const page = pdfDoc.addPage();
-      const { height } = page.getSize();
-  
-      page.drawText(code, {
-        x: 50,
-        y: height - 100,
-      });
-  
-      const pdfBytes = await pdfDoc.save();
-  
-      const fileName = `code_${Date.now()}.pdf`;
-      const bucket = storage.bucket('screenshots_canvas');
-      const file = bucket.file(fileName);
-      
-      // Create a writable stream and pipe the PDF data to it
-      const writeStream = file.createWriteStream({
-        metadata: {
-          contentType: 'application/pdf',
-        },
-      });
-  
-      writeStream.on('error', (err) => {
-        console.error('Error writing PDF to Google Cloud Storage:', err);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
-      });
-  
-      writeStream.on('finish', async () => {
-        console.log(`PDF saved to Google Cloud Storage: ${fileName}`);
-  
-        // Get a signed URL for the client to download the PDF
-        const [url] = await file.getSignedUrl({
-          action: 'read',
-          expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-        });
-  
-        // Respond to the client with the signed URL
-        res.status(200).json({ success: true, url });
-      });
-  
-      // Pipe the PDF data to the writable stream
-      writeStream.end(pdfBytes);
-    } catch (error) {
-      console.error('Error saving code as PDF:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-});
 
-  
+//const bucketName = 'screenshot_canvas';
+
 io.on('connection', (socket) => {
-    console.log(`We have a new connection ${socket.id}`);
+  console.log(`We have a new connection ${socket.id}`);
 
-    socket.on('join', ({ name, room }, callback) => {
-        console.log(`${name} has joined room ${room}`);
+  socket.on('join', ({ name, room }, callback) => {
+    console.log(`${name} has joined room ${room}`);
 
-        const { error, user } = addUser({ id: socket.id, name, room });
+    const { error, user } = addUser({ id: socket.id, name, room });
 
-        if (error) return callback(error);
-        socket.join(user.room);
+    if (error) return callback(error);
+    socket.join(user.room);
 
-        socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room ${user.room}` });
-        socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name}, has joined!` });
+    socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room ${user.room}` });
+    socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name}, has joined!` });
 
-        io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) })
-        callback();
-    });
+    io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) })
+    callback();
+  });
 
-    socket.on('sendMessage', (message, callback) => {
-        const user = getUser(socket.id);
-        console.log(`from SendMessage ${user.name}`);
+  socket.on('sendMessage', (message, callback) => {
+    const user = getUser(socket.id);
+    console.log(`from SendMessage ${user.name}`);
 
-        io.to(user.room).emit('message', { user: user.name, text: message });
-        io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
+    io.to(user.room).emit('message', { user: user.name, text: message });
+    io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
 
-        callback();
-    })
+    callback();
+  })
 
-    socket.on('draw-line', ({ prevPoint, currentPoint, color }) => {
-        const user = getUser(socket.id);
+  socket.on('draw-line', ({ prevPoint, currentPoint, color }) => {
+    const user = getUser(socket.id);
 
-        socket.broadcast.to(user.room).emit('draw-line', { prevPoint, currentPoint, color });
-    })
+    socket.broadcast.to(user.room).emit('draw-line', { prevPoint, currentPoint, color });
+  })
 
-    socket.on('clear', () => {
-        const user = getUser(socket.id);
-        io.to(user.room).emit('clear')
+  socket.on('clear', () => {
+    const user = getUser(socket.id);
+    io.to(user.room).emit('clear')
+  }
+  );
+
+  socket.on('saveCode', ({ code }) => {
+    const user = getUser(socket.id);
+    console.log(`Code being saved : ${code}`)
+    // Store the code or perform any necessary actions here
+    // You can store it in a database or in-memory data structure
+    // For simplicity, let's store it in-memory for now
+
+    // Broadcast the updated code to other users in the same room
+    io.to(user.room).emit('updateCode', { userId: user.id, code });
+  });
+
+  socket.on('code-executed', ({ output }) => {
+    const user = getUser(socket.id);
+    io.to(user.room).emit('code-executed', { userId: socket.id, output });
+  });
+
+  socket.on('language-change', ({ language }) => {
+    const user = getUser(socket.id);
+    console.log(`Language being updated ${language}`);
+    if (user) {
+      user.language = language;
+      io.to(user.room).emit('language-change', { userId: socket.id, language });
     }
-    );
+  });
 
-    socket.on('saveCode', ({ code }) => {
-        const user = getUser(socket.id);
-        console.log(`Code being saved : ${code}`)
-        // Store the code or perform any necessary actions here
-        // You can store it in a database or in-memory data structure
-        // For simplicity, let's store it in-memory for now
+  socket.on('take-control', () => {
+    const controlUser = getUser(socket.id);
+    console.log(`${controlUser.name} has taken control`);
+    io.emit('control-change', { controlUser });
+  });
 
-        // Broadcast the updated code to other users in the same room
-        io.to(user.room).emit('updateCode', { userId: user.id, code });
-    });
-
-    socket.on('code-executed', ({output}) => {
-        const user = getUser(socket.id);
-        io.to(user.room).emit('code-executed', {userId: socket.id, output });
-    });
-
-    socket.on('language-change', ({ language }) => {
-        const user = getUser(socket.id);
-        console.log(`Language being updated ${language}`);
-        if (user) {
-            user.language = language;
-            io.to(user.room).emit('language-change', { userId: socket.id, language });
-        }
-    });
-
-    socket.on('take-control', () => {
-        const controlUser = getUser(socket.id);
-        console.log(`${controlUser.name} has taken control`);
-        io.emit('control-change', { controlUser });
-    });
-
-    // Listen for release-control event
-    socket.on('release-control', () => {
-        controlUser = { name: 'Nobody', id: '000' };
-        io.emit('control-change', { controlUser });
-    });
+  // Listen for release-control event
+  socket.on('release-control', () => {
+    controlUser = { name: 'Nobody', id: '000' };
+    io.emit('control-change', { controlUser });
+  });
 
 
-    socket.on('disconnect', () => {
-        const user = removeUser(socket.id);
-        if (user) {
-            io.to(user.room).emit('message', { user: 'Admin', text: `${user.name} has left.` });
-            io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
-        }
-    });
+  socket.on('disconnect', () => {
+    const user = removeUser(socket.id);
+    if (user) {
+      io.to(user.room).emit('message', { user: 'Admin', text: `${user.name} has left.` });
+      io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
+    }
+  });
 });
 app.use(cors());
 app.use(express.json());

@@ -71,9 +71,9 @@ const CanvasDraw = ({ socket }) => {
                         });
 
                         const { fileName } = response.data;
+                        const downloadUrl = `http://localhost:5000/downloadCanvasImage/${fileName}`;
+                        window.open(downloadUrl, '_blank');
 
-                        // Redirect to download the image
-                        window.location.href = `http://localhost:5000/downloadCanvasImage/${fileName}`;
                     } catch (error) {
                         console.error('Error uploading image:', error);
                     }
@@ -125,11 +125,11 @@ const CanvasDraw = ({ socket }) => {
 
             <button
                 className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-gray-300 absolute"
-                style={{zIndex: 2, top: 'calc(30%)',left: 'calc(100%)'}}
+                style={{ zIndex: 2, top: 'calc(30%)', left: 'calc(100%)' }}
                 onClick={handleButtonClick}
             >
-                <img src="download.png" alt="Download" style={{width: '200%', height: '50%'}} className='object-cov'/>
-            
+                <img src="download.png" alt="Download" style={{ width: '200%', height: '50%' }} className='object-cover' />
+
             </button>
 
             <button
@@ -137,7 +137,7 @@ const CanvasDraw = ({ socket }) => {
                 style={{ zIndex: 2, left: '100%', top: '60px' }}
                 onClick={() => socket.emit('clear')}
             >
-            <img src={reset} alt='Icon' className='object-cover' />
+                <img src={reset} alt='Icon' className='object-cover' />
             </button>
             {colorPickerVisible && (
                 <section className='small'>

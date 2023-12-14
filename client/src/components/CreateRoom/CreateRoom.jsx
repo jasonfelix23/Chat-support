@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { Link , useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 const CreateRoom = () => {
     const [room, setRoom] = useState('');
     const [password, setPassword] = useState('');
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const handleCreate = async (e) => {
         e.preventDefault();
-        console.log(`No request to server, just checking ${room} name and ${password}`);
 
         if (!password) {
             // Handle validation or show an error message
@@ -63,8 +62,7 @@ const CreateRoom = () => {
             </div>
             <Link onClick={handleCreate} to={`/`}>
                 <button className='bg-white hover:bg-gray-300 text-gray-600 font-semibold py-4 px-8  mt-10 border border-gray-400 rounded shadow'
-                    type="submit"
-                     onClick={handleCreate}>
+                    type="submit">
                     Create
                 </button>
             </Link>

@@ -43,19 +43,19 @@ const CodeEditor = ({ socket }) => {
   const executeCode = async () => {
     try {
 
-    setIsPlayButtonPressed(true);
+      setIsPlayButtonPressed(true);
 
       const response = await axios.post('https://code-compiler10.p.rapidapi.com/', {
         langEnum: [
-            'python',
-            'javascript',
+          'python',
+          'javascript',
         ],
         lang: selectedLanguage.toLowerCase(),
         code: value,
         input: '',
-    }, {
+      }, {
         headers: {
-        'content-type': 'application/json',
+          'content-type': 'application/json',
           'Content-Type': 'application/json',
           'x-compile': 'rapidapi',
           'X-RapidAPI-Key': '21f64d709emshbabcd9e32de3870p14993fjsndefaa0fbccbf',
@@ -79,7 +79,7 @@ const CodeEditor = ({ socket }) => {
       console.error('Error executing code!', error);
       setOutput('Error in the code!');
     } finally {
-        setIsPlayButtonPressed(false);
+      setIsPlayButtonPressed(false);
     }
   };
 
@@ -93,25 +93,65 @@ const CodeEditor = ({ socket }) => {
     languageSelection = javascript();
   }
 
+  // const saveCodeAsPDF = async () => {
+  //   try {
+  //     const response = await axios.post('http://localhost:5000/saveCodeAsPDF', { code: value });
+
+  //     if (response.data.success) {
+  //       const url = response.data.url;
+
+  //       // Create a temporary link element
+  //       const link = document.createElement('a');
+  //       link.href = url;
+  //       link.target = '_blank';
+  //       link.download = 'code_output.pdf';
+
+  //       // Append the link to the body
+  //       document.body.appendChild(link);
+
+  //       // Trigger a click event to initiate the download
+  //       link.click();
+
+  //       // Remove the link from the body
+  //       document.body.removeChild(link);
+  //     } else {
+  //       console.error('Server error:', response.data.error);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error saving code as PDF:', error);
+  //   }
+  // };
+
   const saveCodeAsPDF = async () => {
     try {
       const response = await axios.post('http://localhost:5000/saveCodeAsPDF', { code: value });
-  
+
       if (response.data.success) {
         const url = response.data.url;
-  
+        const pdfBuffer = response.data.pdfBuffer;
+
         // Create a temporary link element
         const link = document.createElement('a');
-        link.href = url;
+
+        // If the PDF buffer is available, create a Blob and use it as a data URL
+        if (pdfBuffer) {
+          const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+          const dataUrl = URL.createObjectURL(blob);
+          link.href = dataUrl;
+        } else {
+          // If the PDF buffer is not available, use the signed URL directly
+          link.href = url;
+        }
+
         link.target = '_blank';
         link.download = 'code_output.pdf';
-  
+
         // Append the link to the body
         document.body.appendChild(link);
-  
+
         // Trigger a click event to initiate the download
         link.click();
-  
+
         // Remove the link from the body
         document.body.removeChild(link);
       } else {
@@ -121,11 +161,6 @@ const CodeEditor = ({ socket }) => {
       console.error('Error saving code as PDF:', error);
     }
   };
-  
-  
-  
-  
-  
 
   // Client side
   useEffect(() => {
@@ -150,11 +185,11 @@ const CodeEditor = ({ socket }) => {
   }, [socket]);
 
   let statusBarClass = `col-span-5 flex p-6 justify-between gap-3 bg-neutral-900 text-gray-400`
-    if (userHasControl) {
-        statusBarClass = `col-span-5 flex p-2 justify-between bg-slate-200 text-gray-600`
-    }
+  if (userHasControl) {
+    statusBarClass = `col-span-5 flex p-2 justify-between bg-slate-200 text-gray-600`
+  }
 
-return (
+  return (
     <div className='grid grid-rows-5 gap-4 h-full w-full box-border'>
       <div className='row-span-4 flex flex-col w-full h-full overflow-auto relative'>
         <div style={{ maxWidth: '100%', width: '100%' }}>
@@ -169,34 +204,34 @@ return (
           />
         </div>
         <div className={statusBarClass}>
-        {userHasControl ?
+          {userHasControl ?
             <div className='col-span-1'>
-                {/* Dropdown button */}
-                <select
-                    className='bg-gray-400 hover:bg-gray-500 rounded-lg p-4'
-                    value={selectedLanguage}
-                    onChange={handleLanguageChange}
-                >
-                    <option value='python'>Python</option>
-                    <option value='javascript'>JavaScript</option>
-                </select>
+              {/* Dropdown button */}
+              <select
+                className='bg-gray-400 hover:bg-gray-500 rounded-lg p-4'
+                value={selectedLanguage}
+                onChange={handleLanguageChange}
+              >
+                <option value='python'>Python</option>
+                <option value='javascript'>JavaScript</option>
+              </select>
             </div> : null}
-              {userHasControl ? (
-              <button onClick={releaseControl} className='col-span-1 bg-gray-400 hover:bg-gray-500'>Release control</button>) 
-              : null}
+          {userHasControl ? (
+            <button onClick={releaseControl} className='col-span-1 bg-gray-400 hover:bg-gray-500'>Release control</button>)
+            : null}
           {controlUser === 'Nobody' ? (
-              <button onClick={takeControl} className='col-span-1 bg-neutral-800 hover:bg-neautral-900 text-gray-400'>Take control</button>)
-           : null}
+            <button onClick={takeControl} className='col-span-1 bg-neutral-800 hover:bg-neautral-900 text-gray-400'>Take control</button>)
+            : null}
           <p>{userHasControl ? 'You have control' : `${controlUser} has control`}</p>
-          {userHasControl? (<button className='col-span-1 bg-gray-400 hover:bg-gray-500' onClick={handleSave}>
+          {userHasControl ? (<button className='col-span-1 bg-gray-400 hover:bg-gray-500' onClick={handleSave}>
             Save
           </button>) : null}
           {/* <button onClick={saveCodeAsPDF}>
             <img alt="Download PDF" className='w-4'/>
           </button> */}
-        <button onClick={saveCodeAsPDF} className="bg-gray-300 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg flex items-center">
-          <img src="download.png" alt="Download PDF" className="w-8 h-8 mr-3" />
-        </button>
+          <button onClick={saveCodeAsPDF} className="bg-gray-300 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg flex items-center">
+            <img src="download.png" alt="Download PDF" className="w-8 h-8 mr-3" />
+          </button>
           <button onClick={executeCode}>
             <img src={play} className='w-4' alt='Run' />
           </button>
@@ -215,6 +250,6 @@ return (
       </div>
     </div>
   );
-  
+
 };
 export default CodeEditor;
